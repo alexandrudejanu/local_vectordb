@@ -2,15 +2,13 @@
 
 A local vector database setup using OpenSearch with k-NN plugin for semantic search and similarity matching.
 
-## Features
+## Features and  Prerequisites
 
 - **Vector Search**: Built-in k-NN plugin with HNSW and IVF algorithms
 - **Local Embeddings**: Sentence-transformers for generating text embeddings locally
 - **OpenSearch Dashboards**: Web UI for visualization and management
 - **Persistent Storage**: Docker volumes for data persistence
 - **Apple Silicon Optimized**: Works great on M1/M2/M3/M4 chips
-
-## Prerequisites
 
 - Docker and Docker Compose installed
 - Python 3.8+ (for Python client)
@@ -25,7 +23,6 @@ A local vector database setup using OpenSearch with k-NN plugin for semantic sea
 # OpenSearch Dashboards on port 5601
 docker-compose up -d
 ```
-
 
 ###  Verify Services are Running
 
@@ -47,16 +44,16 @@ pip install -r requirements.txt
 ./emb_vector_search.py
 ```
 
-This example script demonstrates:
-- Loading a local embeddings model (all-MiniLM-L6-v2)
-- Creating a vector index
-- Indexing documents with embeddings
+This  script:
+- Loads a local embeddings model (all-MiniLM-L6-v2)
+- Creates a vector index
+- Index documents with embeddings
 
 ### Search the Vector Database
 
 ```bash
 # Interactive search mode
-python search.py
+./search.py
 
 # Or search directly from command line
 python search.py "artificial intelligence"

@@ -1,0 +1,12 @@
+# OpenSearch Python Client
+opensearch-py>=2.4.0
+
+# Embeddings - sentence-transformers for local text embeddings
+sentence-transformers>=2.3.0
+
+# Core dependencies
+numpy>=1.24.0
+torch>=2.0.0
+
+# Optional: Progress bars and utilities
+tqdm>=4.65.0
