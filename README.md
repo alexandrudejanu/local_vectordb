@@ -41,30 +41,76 @@ GET _cat/indices?v&pretty
 
 ```bash
 pip install -r requirements.txt
-./emb_vector_search.py
+
+# Index markdown files from a repository
+./emb_vector_search.py /path/to/repository
+
+# Examples:
+./emb_vector_search.py ~/Documents/my-notes
+./emb_vector_search.py . --index my-docs
+./emb_vector_search.py /path/to/repo --model all-mpnet-base-v2
 ```
 
-This  script:
-- Loads a local embeddings model (all-MiniLM-L6-v2)
-- Creates a vector index
-- Index documents with embeddings
+This script:
+- Recursively finds all `.md` files in the specified repository
+- Loads a local embeddings model (all-MiniLM-L6-v2 by default)
+- Creates a vector index in OpenSearch
+- Indexes all markdown documents with their embeddings
+
+**Options:**
+- `--index NAME` - Custom index name (default: documents)
+- `--host HOST` - OpenSearch host (default: localhost)
+- `--port PORT` - OpenSearch port (default: 9200)
+- `--model MODEL` - Embedding model name (default: all-MiniLM-L6-v2)
 
 ### Search the Vector Database
 
 ```bash
-# Interactive search mode
+# Interactive search mode (uses default 'documents' index)
 ./search.py
 
+# Interactive search with custom index
+./search.py --index observability
+
 # Or search directly from command line
-python search.py "artificial intelligence"
-python search.py "programming languages"
+./search.py "artificial intelligence"
+./search.py --index observability "kubernetes deployment"
+
+# Search with more results
+./search.py --index observability --k 10 "docker configuration"
 ```
+
+**Search Options:**
+- `--index NAME` - Index name to search (default: documents)
+- `--host HOST` - OpenSearch host (default: localhost)
+- `--port PORT` - OpenSearch port (default: 9200)
+- `--model MODEL` - Embedding model name (default: all-MiniLM-L6-v2)
+- `--k N` - Number of results to return (default: 5)
 
 The search script provides:
 - Semantic similarity search using vector embeddings
 - Interactive or command-line search modes
-- Formatted results with relevance scores
-- Top 5 most similar documents returned
+- Formatted results with relevance scores and file paths
+- Configurable number of results
+
+## Complete Workflow Example
+
+```bash
+# 1. Start OpenSearch
+docker-compose up -d
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Index your markdown documentation
+./emb_vector_search.py ~/my-project/docs --index my-docs
+
+# 4. Search your docs
+./search.py --index my-docs "how to configure authentication"
+
+# Or use interactive mode with your custom index
+./search.py --index my-docs
+```
 
 ## Local Embeddings Models
 

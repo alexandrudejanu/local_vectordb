@@ -3,9 +3,10 @@
 Search the vector database using semantic similarity
 """
 
+import argparse
+import sys
 from sentence_transformers import SentenceTransformer
 from opensearchpy import OpenSearch
-import sys
 from typing import List, Dict
 
 
@@ -78,7 +79,8 @@ class VectorSearch:
                 'score': hit['_score'],
                 'title': hit['_source'].get('title', ''),
                 'text': hit['_source']['text'],
-                'metadata': hit['_source'].get('metadata', '')
+                'metadata': hit['_source'].get('metadata', ''),
+                'file_path': hit['_source'].get('file_path', '')
             })
         
         return results
@@ -95,7 +97,13 @@ class VectorSearch:
         for i, result in enumerate(results, 1):
             print(f"{i}. {result['title']}")
             print(f"   Score: {result['score']:.4f}")
-            print(f"   Category: {result['metadata']}")
+            
+            # Show file path if it's a file-based document
+            if result.get('file_path'):
+                print(f"   File: {result['file_path']}")
+            elif result.get('metadata'):
+                print(f"   Metadata: {result['metadata']}")
+            
             print(f"   Text: {result['text'][:150]}...")
             print()
         print("="*80)
@@ -104,23 +112,89 @@ class VectorSearch:
 def main():
     """Main search interface"""
     
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Search the OpenSearch vector database using semantic similarity',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Interactive search mode
+  ./search.py
+  
+  # Search with specific query
+  ./search.py "artificial intelligence"
+  
+  # Search in custom index
+  ./search.py --index observability "kubernetes pods"
+  
+  # Search with more results
+  ./search.py --k 10 "docker configuration"
+        """
+    )
+    
+    parser.add_argument(
+        'query',
+        type=str,
+        nargs='*',
+        help='Search query (if not provided, enters interactive mode)'
+    )
+    
+    parser.add_argument(
+        '--index',
+        type=str,
+        default='documents',
+        help='Name of the OpenSearch index to search (default: documents)'
+    )
+    
+    parser.add_argument(
+        '--host',
+        type=str,
+        default='localhost',
+        help='OpenSearch host (default: localhost)'
+    )
+    
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=9200,
+        help='OpenSearch port (default: 9200)'
+    )
+    
+    parser.add_argument(
+        '--model',
+        type=str,
+        default='all-MiniLM-L6-v2',
+        help='Sentence transformer model name (default: all-MiniLM-L6-v2)'
+    )
+    
+    parser.add_argument(
+        '--k',
+        type=int,
+        default=5,
+        help='Number of results to return (default: 5)'
+    )
+    
+    args = parser.parse_args()
+    
     # Initialize search engine
     searcher = VectorSearch(
-        opensearch_host="localhost",
-        opensearch_port=9200,
-        model_name="all-MiniLM-L6-v2"
+        opensearch_host=args.host,
+        opensearch_port=args.port,
+        model_name=args.model
     )
     
     # Check if query provided as command line argument
-    if len(sys.argv) > 1:
-        query = ' '.join(sys.argv[1:])
-        results = searcher.search(query, index_name="documents", k=5)
+    if args.query:
+        query = ' '.join(args.query)
+        results = searcher.search(query, index_name=args.index, k=args.k)
         searcher.display_results(results)
     else:
         # Interactive mode
         print("="*80)
         print("🔍 Vector Database Search")
         print("="*80)
+        print(f"Index: {args.index}")
+        print(f"Results per query: {args.k}")
         print("\nType your search query and press Enter.")
         print("Type 'quit' or 'exit' to stop.\n")
         
@@ -137,7 +211,7 @@ def main():
                     continue
                 
                 print()
-                results = searcher.search(query, index_name="documents", k=5)
+                results = searcher.search(query, index_name=args.index, k=args.k)
                 searcher.display_results(results)
                 print()
                 
